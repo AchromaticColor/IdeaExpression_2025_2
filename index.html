@@ -154,11 +154,9 @@ ready(() => {
     scene.appendChild(wire);
     scene.appendChild(bulb);
 
-    // 랜덤 낙하 거리: 최소 1/5, 최대 2/3 화면 높이
     const vh = window.innerHeight;
     const dropDistance = Math.random() * (vh * 0.66 - vh * 0.2) + vh * 0.2;
 
-    // 애니메이션 1.5초
     wire.animate([{ height: "0px" }, { height: dropDistance + "px" }], {
       duration: 1500,
       easing: "ease-out",
