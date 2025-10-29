@@ -1,446 +1,320 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Taeyang Ha_ID202</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soft Glow Scene – Final Stable</title>
 <style>
   body {
-    margin: 0;
-    background: black;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
+    margin:0;
+    background:black;
+    overflow:hidden;
+    height:100vh;
   }
 
   .scene {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 2;
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
   }
 
+  /* 소녀 이미지는 항상 유지 */
   .girl {
-    position: absolute;
-    bottom: 15px;
-    left: 0;
-    width: 220px;
-    opacity: 1;
-    z-index: 2;
-    pointer-events: none;
+    position:absolute;
+    bottom:15px;
+    left:0;
+    width:220px;
+    z-index:2;
   }
 
-  /* 랜턴 glow 효과 */
+  /* 랜턴 glow */
   .lantern-glow {
-    position: absolute;
-    bottom: 135px;
-    left: 135px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-    filter: blur(25px);
-    z-index: 4;
-    transition: opacity 0.5s ease, box-shadow 0.5s ease, background 0.3s ease;
+    position:absolute;
+    bottom:135px;
+    left:135px;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    opacity:0;
+    filter:blur(25px);
+    z-index:4;
+    transition:opacity .5s ease, box-shadow .5s ease;
   }
 
+  /* Wire + Bulb 구조 */
   .wire {
-    position: absolute;
-    top: 0;
-    width: 2px;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(-50%);
-    z-index: 3;
+    position:absolute;
+    top:0;
+    width:2px;
+    background:rgba(255,255,255,.3);
+    transform:translateX(-50%);
+    z-index:3;
   }
 
   .bulb {
-    position: absolute;
-    top: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    transform: translateX(-50%) scale(var(--scale, 1));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.95;
-    mix-blend-mode: screen;
-    z-index: 3;
+    position:absolute;
+    top:0;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.4);
+    transform:translateX(-50%) scale(var(--scale,1));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:.9;
+    z-index:3;
   }
 
-  /* ✅ 전구 자체 glow 강화 */
   .bulb-inner {
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    background: var(--color);
-    animation: glow 2.0s ease-in-out infinite alternate;
-    box-shadow:
-      0 0 160px var(--color),
-      0 0 320px var(--color),
-      0 0 480px var(--color);
+    width:80%;
+    height:80%;
+    border-radius:50%;
+    background:var(--color);
+    box-shadow:0 0 150px var(--color),
+               0 0 300px var(--color),
+               0 0 500px var(--color);
   }
 
-  /* 전구 주변의 안개빛 */
   .reflection {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 300%;
-    height: 300%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at center,
-      var(--color) 0%,
-      rgba(255, 255, 255, 0.1) 40%,
-      rgba(0, 0, 0, 0) 70%
-    );
-    opacity: 0.8;
-    filter: blur(40px);
-    pointer-events: none;
-    mix-blend-mode: screen;
-    animation: auraPulse 4s ease-in-out infinite alternate;
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:300%;
+    height:300%;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    pointer-events:none;
+    mix-blend-mode:screen;
+    filter:blur(25px);
+    background:radial-gradient(circle,var(--color)0%,rgba(255,255,255,.05)40%,rgba(0,0,0,0)70%);
   }
 
-  /* ✅ 전구 주위 강력한 광륜(halo) — 새로 추가 */
   .halo {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 350%;
-    height: 350%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    /* color-mix 지원이 약한 브라우저 대비해 radial-gradient 간결 버전 사용 */
-    background: radial-gradient(circle, var(--color) 0%, transparent 70%);
-    filter: blur(80px);
-    opacity: 0.9;
-    animation: haloPulse 2.4s ease-in-out infinite alternate;
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:350%;
+    height:350%;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    pointer-events:none;
+    mix-blend-mode:screen;
+    filter:blur(35px);
+    background:radial-gradient(circle,var(--color)0%,transparent70%);
   }
 
-  @keyframes glow {
-    0% {
-      opacity: 0.8;
-      box-shadow:
-        0 0 120px var(--color),
-        0 0 300px var(--color),
-        0 0 500px var(--color);
-      transform: scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      box-shadow:
-        0 0 200px var(--color),
-        0 0 420px var(--color),
-        0 0 720px var(--color);
-      transform: scale(1.05);
-    }
-  }
-
-  @keyframes auraPulse {
-    0% { opacity: 0.4; filter: blur(30px); }
-    100% { opacity: 0.9; filter: blur(70px); }
-  }
-
-  @keyframes haloPulse {
-    0%   { opacity: 0.75; filter: blur(70px); }
-    100% { opacity: 1;    filter: blur(95px); }
-  }
-
-  /* ===== Footprints ===== */
   .footprints {
-    position: absolute;
-    bottom: 6px;
-    left: 220px;
-    width: calc(100% - 220px);
-    height: 90px;
-    pointer-events: none;
-    z-index: 3;
+    position:absolute;
+    bottom:6px;
+    left:220px;
+    width:calc(100% - 220px);
+    height:90px;
+    pointer-events:none;
+    z-index:4;
   }
 
   .footprint {
-    --fp: hsl(0, 100%, 60%);
-    position: absolute;
-    top: 20px;
-    width: 44px;
-    height: 28px;
-    opacity: 0;
-    filter: blur(0.3px);
-    transform-origin: 14px 14px;
-    mix-blend-mode: screen;
+    --fp:hsl(0,100%,60%);
+    position:absolute;
+    top:20px;
+    width:44px;
+    height:28px;
+    opacity:0;
+    mix-blend-mode:screen;
+    transition:opacity .6s ease;
+  }
+
+  .footprint::before, .footprint::after {
+    content:"";
+    position:absolute;
+    background:var(--fp);
+    box-shadow:0 0 8px var(--fp), 0 0 18px var(--fp);
   }
 
   .footprint::before {
-    content: "";
-    position: absolute;
-    left: 14px;
-    top: 4px;
-    width: 30px;
-    height: 20px;
-    background: var(--fp);
-    border-radius: 65% 55% 55% 50%;
-    box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15);
+    left:14px;
+    top:4px;
+    width:30px;
+    height:20px;
+    border-radius:65% 55% 55% 50%;
   }
 
   .footprint::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 6px;
-    width: 14px;
-    height: 14px;
-    background: var(--fp);
-    border-radius: 50%;
-    box-shadow: inset -1px -1px 3px rgba(0,0,0,0.12);
+    left:0;
+    top:6px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
   }
 
-  .footprint.left  { transform: rotate( 6deg); }
-  .footprint.right { transform: rotate(-6deg); }
-
-  .footprint.fade-in  { animation: fpIn 380ms ease-out forwards; }
-  .footprint.fade-out { animation: fpOut 420ms ease-in forwards; }
-
-  /* 발자국 은은한 빛 (기존 유지) */
-  .footprint.glow::before,
-  .footprint.glow::after {
-    animation: footprintGlow 2.8s ease-in-out infinite alternate;
-    box-shadow:
-      0 0 10px var(--fp),
-      0 0 30px var(--fp),
-      0 0 50px var(--fp);
-  }
-
-  @keyframes footprintGlow {
-    0% {
-      opacity: 0.85;
-      box-shadow:
-        0 0 10px var(--fp),
-        0 0 20px var(--fp),
-        0 0 40px var(--fp);
-    }
-    100% {
-      opacity: 1;
-      box-shadow:
-        0 0 20px var(--fp),
-        0 0 40px var(--fp),
-        0 0 70px var(--fp);
-    }
-  }
-
+  .footprint.left { transform:rotate(6deg); }
+  .footprint.right { transform:rotate(-6deg); }
+  .footprint.fade-in { animation:fpIn .4s ease-out forwards; }
   @keyframes fpIn {
-    0%   { opacity: 0; transform: translateY(4px) scale(0.92) rotate(var(--r,0deg)); }
-    100% { opacity: 0.8; transform: translateY(0)  scale(1.00) rotate(var(--r,0deg)); }
+    0% { opacity:0; transform:translateY(4px) scale(.92); }
+    100% { opacity:.9; transform:translateY(0) scale(1); }
   }
-  @keyframes fpOut {
-    0%   { opacity: 0.8; transform: translateY(0)  scale(1.00) rotate(var(--r,0deg)); }
-    100% { opacity: 0;   transform: translateY(4px) scale(0.96) rotate(var(--r,0deg)); }
+
+  /* fade 제거용 */
+  .fade-remove {
+    opacity:0 !important;
+    transition:opacity .45s ease;
+  }
+
+  canvas {
+    position:absolute;
+    top:0; left:0;
+    z-index:3;
+    pointer-events:none;
   }
 </style>
 </head>
 <body>
-  <img src="shilloute.png" alt="lantern girl" class="girl" />
+  <img src="shilloute.png" class="girl">
   <div class="lantern-glow" id="lanternGlow"></div>
-
-  <!-- 발자국 컨테이너 -->
+  <canvas id="glowCanvas"></canvas>
   <div class="footprints" id="footprints"></div>
-
   <div class="scene" id="scene"></div>
 
 <script>
-window.addEventListener("DOMContentLoaded", () => {
-  const scene = document.getElementById("scene");
-  const lantern = document.getElementById("lanternGlow");
-  const footprints = document.getElementById("footprints");
+window.addEventListener("DOMContentLoaded",()=>{
+  const scene=document.getElementById("scene");
+  const lantern=document.getElementById("lanternGlow");
+  const footprints=document.getElementById("footprints");
+  const canvas=document.getElementById("glowCanvas");
+  const ctx=canvas.getContext("2d");
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
 
-  /* ===== Footprint layout params ===== */
-  const stepDistance = 110;
-  const laneOffset   = 14;
-  const baseTop      = 10;
-  const midShift     = 0.5;
-  const convergeStrength = 0.25;
-  const minLane      = 10;
-  const rightMargin  = 120;
-  const containerLeft = 220;
-  const footprintWidth = 44;
+  let glows=[];
+  let animating=true;
 
-  let footprintCount = 0;
-  let lastLeftX = null;
-  let lastRightX = null;
+  function drawGlows(){
+    if(!animating) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(const g of glows){
+      const grad=ctx.createRadialGradient(g.x,g.y,0,g.x,g.y,g.r);
+      grad.addColorStop(0,"hsla("+g.h+","+g.s+"%,"+g.l+"%,0.5)");
+      grad.addColorStop(0.3,"hsla("+g.h+","+g.s+"%,"+g.l+"%,0.25)");
+      grad.addColorStop(1,"transparent");
+      ctx.globalCompositeOperation="screen";
+      ctx.fillStyle=grad;
+      ctx.fillRect(g.x-g.r,g.y-g.r,g.r*2,g.r*2);
+    }
+    ctx.globalCompositeOperation="source-over";
+    requestAnimationFrame(drawGlows);
+  }
+  drawGlows();
 
-  /* ===== Keyboard: 1/2/3/4/5/6/7 ===== */
-  window.addEventListener("keydown", (event) => {
-    const key = event.key.toLowerCase();
-    let color;
-    if (key === "1") color = "hsl(0, 100%, 60%)";
-    else if (key === "4") color = "hsl(120, 100%, 60%)";
-    else if (key === "6") color = "hsl(240, 100%, 60%)";
-    else if (key === "3") color = "hsl(60, 100%, 60%)";
-    else if (key === "7") color = "hsl(280, 100%, 60%)";
-    else if (key === "2") color = "hsl(40, 100%, 60%)";
-    else if (key === "5") color = "hsl(170, 100%, 60%)";
-    else return;
-
+  window.addEventListener("keydown",(e)=>{
+    const k=e.key.toLowerCase();
+    const colors={
+      "1":"hsl(0,100%,60%)","2":"hsl(40,100%,60%)","3":"hsl(60,100%,60%)",
+      "4":"hsl(120,100%,60%)","5":"hsl(170,100%,60%)","6":"hsl(240,100%,60%)",
+      "7":"hsl(280,100%,60%)"
+    };
+    const color=colors[k];
+    if(!color)return;
     createBulb(color);
     glowLantern(color);
     createFootprint(color);
-    setTimeout(fadeLantern, 2000);
+    setTimeout(fadeLantern,2000);
   });
 
-  /* ===== Bulb creation & motion ===== */
-  function createBulb(color) {
-    const wire = document.createElement("div");
-    wire.className = "wire";
+  function createBulb(color){
+    const wire=document.createElement("div");
+    wire.className="wire";
+    const bulb=document.createElement("div");
+    bulb.className="bulb";
+    const inner=document.createElement("div");
+    inner.className="bulb-inner";
+    inner.style.setProperty("--color",color);
+    const reflection=document.createElement("div");
+    reflection.className="reflection";
+    reflection.style.setProperty("--color",color);
+    const halo=document.createElement("div");
+    halo.className="halo";
+    halo.style.setProperty("--color",color);
+    bulb.append(inner,reflection,halo);
 
-    const bulb = document.createElement("div");
-    bulb.className = "bulb";
+    const randomX=Math.random()*window.innerWidth*0.8+window.innerWidth*0.1;
+    const randomScale=0.7+Math.random()*0.6;
+    bulb.style.left=wire.style.left=`${randomX}px`;
+    bulb.style.setProperty("--scale",randomScale);
+    scene.append(wire,bulb);
 
-    const inner = document.createElement("div");
-    inner.className = "bulb-inner";
-    inner.style.setProperty("--color", color);
-
-    const reflection = document.createElement("div");
-    reflection.className = "reflection";
-    reflection.style.setProperty("--color", color);
-
-    /* ✅ 새로 추가되는 강력한 halo */
-    const halo = document.createElement("div");
-    halo.className = "halo";
-    halo.style.setProperty("--color", color);
-
-    bulb.appendChild(inner);
-    bulb.appendChild(reflection);
-    bulb.appendChild(halo);
-
-    const randomX = Math.random() * window.innerWidth * 0.8 + window.innerWidth * 0.1;
-    const randomScale = 0.7 + Math.random() * 0.6;
-    bulb.style.left = wire.style.left = `${randomX}px`;
-    bulb.style.setProperty("--scale", randomScale);
-
-    scene.appendChild(wire);
-    scene.appendChild(bulb);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const vh = window.innerHeight;
-        const dropDistance = Math.random() * (vh * (3 / 5) - vh * (1 / 5)) + vh * (1 / 5);
-
-        wire.animate([{ height: "0px" }, { height: dropDistance + "px" }], {
-          duration: 1500,
-          easing: "ease-out",
-          fill: "forwards"
-        });
-
-        bulb.animate([{ top: "0px" }, { top: dropDistance + "px" }], {
-          duration: 1500,
-          easing: "ease-out",
-          fill: "forwards"
-        });
-      });
-    });
+    const vh=window.innerHeight;
+    const dropDistance=Math.random()*(vh*0.4)+vh*0.2;
+    wire.animate([{height:"0px"},{height:dropDistance+"px"}],{duration:1500,easing:"ease-out",fill:"forwards"});
+    bulb.animate([{top:"0px"},{top:dropDistance+"px"}],{duration:1500,easing:"ease-out",fill:"forwards"});
   }
 
-  // 모든 전구/줄 제거(페이드아웃)
-  function resetBulbs() {
-    const bulbs = Array.from(document.querySelectorAll('.bulb'));
-    const wires = Array.from(document.querySelectorAll('.wire'));
-
-    bulbs.forEach((b) => {
-      const anim = b.animate(
-        [{ opacity: 1 }, { opacity: 0 }],
-        { duration: 300, easing: 'ease-in', fill: 'forwards' }
-      );
-      anim.onfinish = () => b.remove();
-    });
-
-    wires.forEach((w) => {
-      const h = w.getBoundingClientRect().height || 0;
-      const anim = w.animate(
-        [{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
-        { duration: 300, easing: 'ease-in', fill: 'forwards' }
-      );
-      anim.onfinish = () => w.remove();
-    });
+  function glowLantern(c){
+    lantern.style.background=c;
+    lantern.style.boxShadow=`0 0 80px ${c},0 0 160px ${c},0 0 320px ${c}`;
+    lantern.style.opacity=0.7;
+  }
+  function fadeLantern(){
+    lantern.style.opacity=0;
+    lantern.style.boxShadow="none";
   }
 
-  /* ===== Lantern glow controls ===== */
-  function glowLantern(color) {
-    lantern.style.background = color;
-    lantern.style.boxShadow = `0 0 100px ${color}, 0 0 200px ${color}, 0 0 400px ${color}`;
-    lantern.style.opacity = 0.8;
+  const stepDistance=110,laneOffset=14,baseTop=10,midShift=0.5,convergeStrength=0.25;
+  const minLane=10,rightMargin=120,containerLeft=220,footprintWidth=44;
+  let footprintCount=0,lastLeftX=null,lastRightX=null;
+
+  function overflowLimit(){return window.innerWidth-rightMargin-containerLeft;}
+  function nextX(isL){return (isL?lastLeftX:lastRightX)===null?(isL?0:stepDistance*midShift):(lastLeftX+stepDistance*(isL?1:midShift));}
+  function getLane(x){
+    const limit=overflowLimit();
+    const p=Math.min(1,x/Math.max(1,limit));
+    const taper=(laneOffset-minLane)*convergeStrength;
+    return Math.max(minLane,laneOffset-taper*p);
   }
 
-  function fadeLantern() {
-    lantern.style.opacity = 0;
-    lantern.style.boxShadow = "none";
-  }
-
-  /* ===== Footprints ===== */
-  function overflowLimit() {
-    return window.innerWidth - rightMargin - containerLeft;
-  }
-  function nextFootprintX(isLeft) {
-    if (isLeft) {
-      return (lastLeftX === null) ? 0 : lastLeftX + stepDistance;
-    } else {
-      return (lastLeftX === null) ? stepDistance * midShift : lastLeftX + stepDistance * midShift;
+  function createFootprint(color){
+    const isLeft=footprintCount%2===0;
+    let x=nextX(isLeft);
+    const limit=overflowLimit()-footprintWidth;
+    if(x>limit){
+      fadeOutAndReset();
+      footprintCount=0;lastLeftX=lastRightX=null;x=nextX(true);
     }
-  }
-  function getCurrentLane(x) {
-    const limit = overflowLimit();
-    const progress = Math.min(1, x / Math.max(1, limit)); // 0~1
-    const taper = (laneOffset - minLane) * convergeStrength;
-    return Math.max(minLane, laneOffset - taper * progress);
-  }
-
-  function createFootprint(color) {
-    let isLeft = (footprintCount % 2 === 0);
-    let x = nextFootprintX(isLeft);
-
-    const limit = overflowLimit() - footprintWidth;
-    if (x > limit) {
-      resetFootprints();
-      footprintCount = 0;
-      lastLeftX = null;
-      lastRightX = null;
-      isLeft = true;
-      x = nextFootprintX(isLeft);
-    }
-
-    const fp = document.createElement("div");
-    const cls = isLeft ? "left" : "right";
-    const rot = isLeft ? "6deg" : "-6deg";
-
-    fp.className = `footprint glow ${cls}`;
-    fp.style.setProperty("--fp", color);
-    fp.style.setProperty("--r", rot);
-
-    const currentLane = getCurrentLane(x);
-    fp.style.left = `${x}px`;
-    fp.style.top  = `${baseTop + (isLeft ? currentLane : -currentLane)}px`;
-
+    const y=baseTop+(isLeft?getLane(x):-getLane(x));
+    const fp=document.createElement("div");
+    fp.className=`footprint ${isLeft?"left":"right"}`;
+    fp.style.setProperty("--fp",color);
+    fp.style.left=`${x}px`;
+    fp.style.top=`${y}px`;
     footprints.appendChild(fp);
-    requestAnimationFrame(() => fp.classList.add("fade-in"));
+    setTimeout(()=>fp.classList.add("fade-in"),16);
 
-    if (isLeft) lastLeftX = x; else lastRightX = x;
+    const hsl=color.match(/\d+/g);
+    glows.push({x:x+240,y:window.innerHeight-90+y,r:32,h:hsl[0],s:hsl[1],l:hsl[2]});
+
+    if(isLeft)lastLeftX=x;else lastRightX=x;
     footprintCount++;
   }
 
-  function resetFootprints() {
-    resetBulbs();
-    const children = Array.from(footprints.children);
-    children.forEach((el, i) => {
-      setTimeout(() => {
-        el.classList.remove("fade-in");
-        el.classList.add("fade-out");
-        el.addEventListener("animationend", () => el.remove(), { once: true });
-      }, i * 12);
-    });
+  /* ✨ Flicker-free fade + reset */
+  function fadeOutAndReset(){
+    animating=false;
+    const bulbs=[...document.querySelectorAll(".bulb")];
+    const wires=[...document.querySelectorAll(".wire")];
+    const prints=[...footprints.children];
+    const all=[...bulbs,...wires,...prints];
+
+    all.forEach(el=>el.classList.add("fade-remove"));
+
+    setTimeout(()=>{
+      glows=[];
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      all.forEach(el=>el.remove());
+      animating=true;
+      requestAnimationFrame(drawGlows);
+    },500);
   }
 });
 </script>
